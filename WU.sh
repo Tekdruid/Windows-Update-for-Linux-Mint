@@ -1,10 +1,41 @@
 #!/bin/bash
-apt-get update && apt-get upgrade --yes 
-# echo  $1
-if [[ $1 == '-r' || $1 == '--reboot' ]]; then
-    # echo "reboot"
-    reboot now 
+while getopts lrh OPTION 
+do
+  case $OPTION in
+  r | reboot)
+     reboot=1
+     ;;
+  l | log)
+     log=1
+     ;;
+  h | help)
+    help=1
+    ;;
+  esac
+done
+echo "Reboot: $reboot"
+echo "Log: $log"
+echo "Help: $help"
+if [[ $help ]] then
+  echo "Usage: WU.sh [-r or --reboot]: reboot instead of shutting down [-l or --log]: write log file from script output [-h or --help]: display this message"
 else
-    # echo "shutdown"
-    shutdown now
+  if [[ $log ]] then
+     apt-get update && apt-get upgrade --yes > updatelog.txt
+    if [[ $reboot || $1 == '--reboot' ]] then
+      #echo "reboot" > updatelog.txt
+      reboot now >> updatelog.txt
+    else
+      #echo "shutdown" > updatelog.txt
+       shutdown now >> updatelog.txt
+    fi
+  else
+     apt-get update && apt-get upgrade --yes 
+    if [[ $reboot || $1 == '--reboot' ]] then
+      #echo "reboot"
+      reboot now 
+    else
+      #echo "shutdown"
+       shutdown now
+    fi
+  fi
 fi
