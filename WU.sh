@@ -20,12 +20,12 @@ if [[ $help ]] then
   echo "Usage: WU.sh [-r or --reboot]: reboot instead of shutting down [-l or --log]: write log file from script output [-h or --help]: display this message"
 else
   if [[ $log ]] then
-     apt-get update | tee updatelog.txt && apt-get upgrade --yes | tee -a updatelog.txt
+     apt-get update | tee updatelog.txt && apt-get upgrade --yes | tee -a updatelog.txt &&
     if [[ $reboot || $1 == '--reboot' ]] then
-      #echo "reboot" >> updatelog.txt
-      reboot now | tee -a updatelog.txt
+      # echo "reboot" | tee -a updatelog.txt
+       reboot now | tee -a updatelog.txt
     else
-      #echo "shutdown" >> updatelog.txt
+      #echo "shutdown" | tee -a updatelog.txt
        shutdown now | tee -a updatelog.txt
     fi
   else
