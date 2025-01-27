@@ -1,37 +1,55 @@
 #!/bin/bash
-while getopts lrh OPTION 
+reboot=false
+log=false
+logfile="updatelog.txt"
+help=false
+if ! options=$(getopt -o rlhf: -l reboot,log,help,logfile: -- "$@")
+then
+    exit 1
+fi
+
+set -- $options
+
+while [ $# -gt 0 ]
 do
-  case $OPTION in
-  r | reboot)
-     reboot=1
-     ;;
-  l | log)
-     log=1
-     ;;
-  h | help)
-    help=1
-    ;;
-  esac
+    case $1 in
+    -r|--reboot) reboot=true ;;
+    -l|--log) log=true ;;
+    -h|--help) help=true ;;
+    -f|--logfile) logfile=$2 ; shift;;
+    (--) shift; break;;
+    (-*) echo "$0: error - unrecognized option $1" 1>&2; exit 1;;
+    (*) break;;
+    esac
+    shift
 done
-echo "Reboot: $reboot"
-echo "Log: $log"
-echo "Help: $help"
-if [[ $help ]] then
-  echo "Usage: WU.sh [-r or --reboot]: reboot instead of shutting down [-l or --log]: write log file from script output [-h or --help]: display this message"
+logfile=${logfile//\'/} # Strip extra quotes from filename
+# echo "Reboot: $reboot"
+# echo "Log: $log"
+# echo "Help: $help"
+# echo "Logfile: $logfile"
+if [[ $help == true ]] then
+  echo "Usage: WU.sh [-r or --reboot]: reboot instead of shutting down [-l or --log]: write log file from script output [-h or --help]: display this message [-f or --logfile:<path/to/file> Set log file path]"
 else
-  if [[ $log ]] then
-     apt-get update | tee updatelog.txt && apt-get upgrade --yes | tee -a updatelog.txt &&
-    if [[ $reboot || $1 == '--reboot' ]] then
-      # echo "reboot" | tee -a updatelog.txt
-       reboot now | tee -a updatelog.txt
+  if [[ $log == true ]] then
+    # echo "Update" | tee ${logfile} && 
+     apt-get update | tee ${logfile} && 
+    # echo "Force upgrade" | tee -a ${logfile} &&    
+    apt-get upgrade --yes | tee -a ${logfile} &&  
+    if [[ $reboot == true ]] then
+       #echo "reboot" | tee -a ${logfile}
+       reboot now | tee -a ${logfile}
     else
-      #echo "shutdown" | tee -a updatelog.txt
-       shutdown now | tee -a updatelog.txt
+      #echo "shutdown" | tee -a ${logfile}
+       shutdown now | tee -a ${logfile}
     fi
   else
-     apt-get update && apt-get upgrade --yes 
-    if [[ $reboot || $1 == '--reboot' ]] then
-      #echo "reboot"
+    #echo "Update" &&
+     apt-get update &&
+    #echo "Force upgrade" && 
+    apt-get upgrade --yes 
+    if [[ $reboot == true ]] then
+      # echo "reboot"
       reboot now 
     else
       #echo "shutdown"
